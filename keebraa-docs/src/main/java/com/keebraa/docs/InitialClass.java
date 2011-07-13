@@ -5,6 +5,7 @@ package com.keebraa.docs;
  * 
  * @author taqi
  * 
+ * 
  */
 public class InitialClass
 {
