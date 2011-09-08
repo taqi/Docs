@@ -61,17 +61,18 @@ public abstract class Document
     {
         switch(state)
         {
-        case NEW:
-        case MARKED:
-        case DELETED:
-        case SAVED:
-            throw new DocumentHandlingException(WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);        
+            case NEW:
+            case MARKED:
+            case DELETED:
+            case SAVED:
+                throw new DocumentHandlingException(
+                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
         }
-        
-        if(hasRecords())
+
+        if (hasRecords())
         {
             Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.CANCELED);
+                    .handleDocument(this, DocumentState.CANCELED);
             state = DocumentState.CANCELED;
         }
         else
@@ -83,13 +84,14 @@ public abstract class Document
 
     public final void performDeleting() throws DocumentHandlingException
     {
-        switch (state)
+        switch(state)
         {
-        case NEW:
-            throw new DocumentHandlingException(WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-        case RECORDED:
-            performCancelRecording();
-            break;
+            case NEW:
+                throw new DocumentHandlingException(
+                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
+            case RECORDED:
+                performCancelRecording();
+                break;
         }
         Core.getInstance().getDocumentLifecycleBus()
                 .handleDocument(this, DocumentState.DELETED);
@@ -98,15 +100,16 @@ public abstract class Document
 
     public final void performMarking() throws DocumentHandlingException
     {
-        switch (state)
+        switch(state)
         {
-        case NEW:
-        case DELETED:
-            throw new DocumentHandlingException(WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-        case RECORDED:
-            performCancelRecording();
+            case NEW:
+            case DELETED:
+                throw new DocumentHandlingException(
+                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
+            case RECORDED:
+                performCancelRecording();
         }
-        
+
         Core.getInstance().getDocumentLifecycleBus()
                 .handleDocument(this, DocumentState.MARKED);
         state = DocumentState.MARKED;
@@ -114,14 +117,15 @@ public abstract class Document
 
     public final void performRecording() throws DocumentHandlingException
     {
-        switch (state)
+        switch(state)
         {
-        case NEW:
-            performSaving();
-            break;
-        case MARKED:
-        case DELETED:
-            throw new DocumentHandlingException(WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
+            case NEW:
+                performSaving();
+                break;
+            case MARKED:
+            case DELETED:
+                throw new DocumentHandlingException(
+                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
         }
         Core.getInstance().getDocumentLifecycleBus()
                 .handleDocument(this, DocumentState.RECORDED);
@@ -130,14 +134,19 @@ public abstract class Document
 
     public final void performSaving() throws DocumentHandlingException
     {
-        switch (state)
+        switch(state)
         {
-        case RECORDED:
-            performCancelRecording();
-            break;
-        case MARKED:
-        case DELETED:
-            throw new DocumentHandlingException(WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
+            case RECORDED:
+                performCancelRecording();
+                break;
+            case CANCELED:
+                Core.getInstance().getDocumentLifecycleBus()
+                        .handleDocument(this, DocumentState.REMOVE_RECORDS);
+                break;
+            case MARKED:
+            case DELETED:
+                throw new DocumentHandlingException(
+                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
         }
         Core.getInstance().getDocumentLifecycleBus()
                 .handleDocument(this, DocumentState.SAVED);
