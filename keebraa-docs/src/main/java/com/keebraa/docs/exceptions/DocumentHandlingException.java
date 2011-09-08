@@ -1,6 +1,11 @@
 package com.keebraa.docs.exceptions;
 
-public class DocumentHandlingException extends Exception
+/**
+ * Class that represents situation with wrong Document handling 
+ * @author taqi
+ *
+ */
+public class DocumentHandlingException extends DocsException
 {
 	private static final long serialVersionUID = -3036131776085803597L;
 

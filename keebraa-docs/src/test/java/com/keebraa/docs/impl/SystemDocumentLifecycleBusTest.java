@@ -11,24 +11,26 @@ import org.junit.Test;
 import com.keebraa.docs.Core;
 import com.keebraa.docs.DocumentLifecycleBus;
 import com.keebraa.docs.exceptions.DocumentHandlingException;
+import com.keebraa.docs.exceptions.DocumentLifecycleHandlerException;
 import com.keebraa.docs.model.Document;
 import com.keebraa.docs.model.DocumentState;
 import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
+import com.keebraa.docs.model.dochandlers.DocumentStateHandler;
 import com.keebraa.docs.model.dochandlers.HandlingMethod;
 
 public class SystemDocumentLifecycleBusTest
 {
+    @DocumentStateHandler(handledClass = Object.class)
+    class WrongHandler extends DocumentLifecycleHandler
+    {
+    }
+    
+    @DocumentStateHandler(handledClass = MockDocument.class)
     class IndicatorHandler extends DocumentLifecycleHandler
     {
         private boolean processed;
         private DocumentState targetState;
         private DocumentState sourceState;
-
-        @Override
-        public Class<MockDocument> getHandlingClass()
-        {
-            return MockDocument.class;
-        }
 
         @HandlingMethod(state = DocumentState.CANCELED)
         public void handleCanceling(Document document)
@@ -109,6 +111,28 @@ public class SystemDocumentLifecycleBusTest
             this.records = records;
         }
     }
+    
+    @Test(expected = DocumentLifecycleHandlerException.class)
+    public void registerHandler_WrongHandler() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        DocumentLifecycleHandler handler = new WrongHandler();
+        bus.registerDocumentLifecycleHandler(handler);
+    }
+    
+    @Test
+    public void registerHandler_RightHandler() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        bus.registerDocumentLifecycleHandler(handler);
+        
+        Document mockDocument = new MockDocument();
+        mockDocument.performSaving();
+        
+        assertTrue(handler.isProcessed());
+    }
+    
 
     @Test
     public void handleDocument_InstantiateDocument() throws Exception
