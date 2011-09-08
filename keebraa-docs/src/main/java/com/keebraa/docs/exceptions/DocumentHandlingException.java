@@ -13,4 +13,9 @@ public class DocumentHandlingException extends Exception
     {
         super(e);
     }
+	
+	public DocumentHandlingException(String message)
+    {
+        super(message);
+    }
 }

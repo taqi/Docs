@@ -2,6 +2,8 @@ package com.keebraa.docs.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -18,8 +20,9 @@ public class SystemDocumentLifecycleBusTest
 {
     class IndicatorHandler extends DocumentLifecycleHandler
     {
-        private boolean processed = false;
-        private Document document;
+        private boolean processed;
+        private DocumentState targetState;
+        private DocumentState sourceState;
 
         @Override
         public Class<MockDocument> getHandlingClass()
@@ -27,89 +30,83 @@ public class SystemDocumentLifecycleBusTest
             return MockDocument.class;
         }
 
-        public boolean isProcessed()
-        {
-            return processed;
-        }
-
-        private void proccess(Document document)
-        {
-            processed = true;
-            this.document = document;
-        }
-
-        @HandlingMethod(state = DocumentState.SAVED)
-        public void handleSaving(Document document)
-        {
-            proccess(document);
-        }
-
-        @HandlingMethod(state = DocumentState.MARKED)
-        public void handleMarking(Document document)
-        {
-            proccess(document);
-        }
-
-        @HandlingMethod(state = DocumentState.RECORDED)
-        public void handleRecording(Document document)
-        {
-            proccess(document);
-        }
-
-        @HandlingMethod(state = DocumentState.NEW)
-        public void handleInstantiating(Document document)
-        {
-            proccess(document);
-        }
-
         @HandlingMethod(state = DocumentState.CANCELED)
         public void handleCanceling(Document document)
         {
-            proccess(document);
+            proccess(document, DocumentState.CANCELED);
         }
 
         @HandlingMethod(state = DocumentState.DELETED)
         public void handleDeleting(Document document)
         {
-            proccess(document);
+            proccess(document, DocumentState.DELETED);
         }
 
-        public boolean isSaved()
+        @HandlingMethod(state = DocumentState.NEW)
+        public void handleInstantiating(Document document)
         {
-            return document.getState().equals(DocumentState.SAVED);
+            proccess(document, DocumentState.NEW);
         }
 
-        public boolean isMarked()
+        @HandlingMethod(state = DocumentState.MARKED)
+        public void handleMarking(Document document)
         {
-            return document.getState().equals(DocumentState.MARKED);
+            proccess(document, DocumentState.MARKED);
         }
 
-        public boolean isCanceled()
+        @HandlingMethod(state = DocumentState.RECORDED)
+        public void handleRecording(Document document)
         {
-            return document.getState().equals(DocumentState.CANCELED);
+            proccess(document, DocumentState.RECORDED);
         }
 
-        public boolean isDeleted()
+        @HandlingMethod(state = DocumentState.SAVED)
+        public void handleSaving(Document document)
         {
-            return document.getState().equals(DocumentState.DELETED);
+            proccess(document, DocumentState.SAVED);
         }
 
-        public boolean isNew()
+        public boolean isProcessed()
         {
-            return document.getState().equals(DocumentState.NEW);
+            return processed;
         }
 
-        public boolean isRecorded()
+        public DocumentState getSourceState()
         {
-            return document.getState().equals(DocumentState.RECORDED);
+            return sourceState;
+        }
+
+        public DocumentState getTargetState()
+        {
+            return targetState;
+        }
+
+        private void proccess(Document document, DocumentState nextState)
+        {
+            processed = true;
+            this.targetState = nextState;
+            this.sourceState = document.getState();
         }
     }
 
     class MockDocument extends Document
     {
+        private boolean records;
+
         public MockDocument() throws DocumentHandlingException
         {
             super();
+        }
+
+        @Override
+        public boolean hasRecords()
+        {
+            return records;
+        }
+
+        public void setRecords(boolean records)
+        {
+            this.records = records;
         }
     }
 
@@ -126,60 +123,242 @@ public class SystemDocumentLifecycleBusTest
         new MockDocument();
 
         assertTrue(handler.isProcessed());
-        assertEquals(true, handler.isNew());
-
-        assertEquals(false, handler.isSaved());
-        assertEquals(false, handler.isDeleted());
-        assertEquals(false, handler.isMarked());
-        assertEquals(false, handler.isRecorded());
-        assertEquals(false, handler.isCanceled());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+        assertNotSame(DocumentState.RECORDED, handler.getTargetState());
     }
-    
-    @Test
-    public void handleDocument_SaveDocument() throws Exception
-    {
-        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
-        IndicatorHandler handler = new IndicatorHandler();
 
-        assertFalse(handler.isProcessed());
-
-        bus.registerDocumentLifecycleHandler(handler);
-
-        Document document = new MockDocument();
-        document.performSaving();
-
-        assertTrue(handler.isProcessed());
-        
-        assertEquals(true, handler.isSaved());
-        assertEquals(false, handler.isNew());
-        
-        assertEquals(false, handler.isDeleted());
-        assertEquals(false, handler.isMarked());
-        assertEquals(false, handler.isRecorded());
-        assertEquals(false, handler.isCanceled());
-    }
-    
     @Test
     public void handleDocument_RecordDocument() throws Exception
     {
         DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
         IndicatorHandler handler = new IndicatorHandler();
-
         assertFalse(handler.isProcessed());
-
         bus.registerDocumentLifecycleHandler(handler);
-
         Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+
+        document.performRecording();
+        assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.SAVED, handler.getSourceState());
+        assertEquals(DocumentState.RECORDED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+    }
+
+    @Test
+    public void handleDocument_SaveDocument() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+
+        document.performSaving();
+        assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.NEW, handler.getSourceState());
+        assertEquals(DocumentState.SAVED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+    }
+
+    @Test
+    public void handleDocument_CancelRecordingDocumentWithoutRecords() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+
         document.performRecording();
 
         assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.SAVED, handler.getSourceState());
+        assertEquals(DocumentState.RECORDED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+
+        document.performCancelRecording();
+
+        assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.CANCELED, handler.getSourceState());
+        assertEquals(DocumentState.SAVED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+    }
+
+    @Test
+    public void handleDocument_CancelRecordingDocumentWithRecords() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        MockDocument document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+
+        document.performRecording();
+        document.setRecords(true);
+
+        assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.SAVED, handler.getSourceState());
+        assertEquals(DocumentState.RECORDED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+        assertNotSame(DocumentState.CANCELED, handler.getTargetState());
+
+        document.performCancelRecording();
+
+        assertTrue(handler.isProcessed());
+        assertEquals(DocumentState.RECORDED, handler.getSourceState());
+        assertEquals(DocumentState.CANCELED, handler.getTargetState());
+        assertNotSame(DocumentState.NEW, handler.getTargetState());
+        assertNotSame(DocumentState.MARKED, handler.getTargetState());
+    }
+
+    @Test(expected = DocumentHandlingException.class)
+    public void handleDocument_MarkDocumentAfterCreate() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+
+        document.performMarking();
+    }
+    
+    @Test
+    public void handleDocument_MarkDocumentAfterSaving() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+        document.performSaving();
+        document.performMarking();
         
-        assertEquals(true, handler.isRecorded());
+        assertEquals(DocumentState.MARKED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+    }
+    
+    @Test
+    public void handleDocument_MarkDocumentAfterRecording() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+        document.performSaving();
+        document.performRecording();
         
-        assertEquals(false, handler.isSaved());
-        assertEquals(false, handler.isNew());        
-        assertEquals(false, handler.isDeleted());
-        assertEquals(false, handler.isMarked());        
-        assertEquals(false, handler.isCanceled());
+        assertEquals(DocumentState.RECORDED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+        
+        document.performMarking();
+        
+        assertEquals(DocumentState.MARKED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+        assertNotSame(DocumentState.RECORDED, document.getState());
+        
+    }
+    
+    @Test(expected = DocumentHandlingException.class)
+    public void handleDocument_MarkDocumentAfterInitializing() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+
+        assertTrue(handler.isProcessed());
+        assertNull(handler.getSourceState());
+        assertEquals(DocumentState.NEW, handler.getTargetState());
+        
+        document.performMarking();       
+    }
+    
+    @Test(expected = DocumentHandlingException.class)
+    public void handleDocument_MarkDocumentAfterRemoving() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        Document document = new MockDocument();
+        document.performSaving();
+        document.performDeleting();
+        
+        assertEquals(DocumentState.DELETED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+        
+        document.performMarking();       
+    }
+    
+    @Test
+    public void handleDocument_MarkDocumentAfterCanceling() throws Exception
+    {
+        DocumentLifecycleBus bus = Core.getInstance().getDocumentLifecycleBus();
+        IndicatorHandler handler = new IndicatorHandler();
+        assertFalse(handler.isProcessed());
+        bus.registerDocumentLifecycleHandler(handler);
+        MockDocument document = new MockDocument();
+        
+        document.setRecords(true);
+        document.performSaving();
+        document.performRecording();
+        document.performCancelRecording();
+        
+        assertEquals(DocumentState.CANCELED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+
+        document.performMarking();    
+        
+        assertEquals(DocumentState.MARKED, document.getState());
+        assertNotSame(DocumentState.SAVED, document.getState());
+        assertNotSame(DocumentState.NEW, document.getState());
+        assertNotSame(DocumentState.RECORDED, document.getState());
     }
 }

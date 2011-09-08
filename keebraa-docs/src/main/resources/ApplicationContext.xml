@@ -5,7 +5,6 @@
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd">
 
-
 	<bean id="documentLifecycleBus" class="com.keebraa.docs.impl.SystemDocumentLifecycleBus" />
 
 </beans>
