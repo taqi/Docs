@@ -1,16 +1,9 @@
 package com.keebraa.docs.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-import org.easymock.EasyMock;
 import org.junit.Test;
-
-import com.keebraa.docs.Core;
-import com.keebraa.docs.DocumentLifecycleBus;
 import com.keebraa.docs.exceptions.DocumentHandlingException;
 /**
  * Test cases for validate basic abstract Document behavior. 
