@@ -37,7 +37,7 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         registeredHandlers = new HashMap<Type, List<DocumentLifecycleHandler>>();
     }
 
-    public boolean handleDocument(Document document, DocumentState nextState)
+    public void handleDocument(Document document, DocumentState nextState)
             throws DocumentHandlingException
     {
         List<DocumentLifecycleHandler> handlers = getHandlers(document.getClass());
@@ -49,7 +49,6 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
                 handleByMethod(handler, method, document);
             }
         }
-        return false;
     }
 
     private void handleByMethod(DocumentLifecycleHandler handler, Method method,
@@ -106,7 +105,7 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
             {
                 continue;
             }
-            if (!method.getAnnotation(HandlingMethod.class).state().equals(nextState))
+            if (!method.getAnnotation(HandlingMethod.class).state().equals(nextState.getStateCaption()))
             {
                 continue;
             }

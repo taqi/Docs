@@ -4,10 +4,10 @@ import java.util.Date;
 
 import com.keebraa.docs.Core;
 import com.keebraa.docs.exceptions.DocumentHandlingException;
+import com.keebraa.docs.model.impl.NewState;
 
 public abstract class Document
 {
-    private static String WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE = "wrong state of the document.";
     @DocumentField
     private Date createDate;
 
@@ -20,14 +20,11 @@ public abstract class Document
     @DocumentField
     private String prefix;
 
-    @DocumentField
     private DocumentState state;
 
     public Document() throws DocumentHandlingException
     {
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.NEW);
-        state = DocumentState.NEW;
+        notifyDocumentLifecycleBus(new NewState());
     }
 
     public Date getCreateDate()
@@ -57,102 +54,6 @@ public abstract class Document
 
     public abstract boolean hasRecords();
 
-    public final void performCancelRecording() throws DocumentHandlingException
-    {
-        switch(state)
-        {
-            case NEW:
-            case MARKED:
-            case DELETED:
-            case SAVED:
-                throw new DocumentHandlingException(
-                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-        }
-
-        if (hasRecords())
-        {
-            Core.getInstance().getDocumentLifecycleBus()
-                    .handleDocument(this, DocumentState.CANCELED);
-            state = DocumentState.CANCELED;
-        }
-        else
-        {
-            state = DocumentState.CANCELED;
-            performSaving();
-        }
-    }
-
-    public final void performDeleting() throws DocumentHandlingException
-    {
-        switch(state)
-        {
-            case NEW:
-                throw new DocumentHandlingException(
-                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-            case RECORDED:
-                performCancelRecording();
-                break;
-        }
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.DELETED);
-        state = DocumentState.DELETED;
-    }
-
-    public final void performMarking() throws DocumentHandlingException
-    {
-        switch(state)
-        {
-            case NEW:
-            case DELETED:
-                throw new DocumentHandlingException(
-                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-            case RECORDED:
-                performCancelRecording();
-        }
-
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.MARKED);
-        state = DocumentState.MARKED;
-    }
-
-    public final void performRecording() throws DocumentHandlingException
-    {
-        switch(state)
-        {
-            case NEW:
-                performSaving();
-                break;
-            case MARKED:
-            case DELETED:
-                throw new DocumentHandlingException(
-                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-        }
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.RECORDED);
-        state = DocumentState.RECORDED;
-    }
-
-    public final void performSaving() throws DocumentHandlingException
-    {
-        switch(state)
-        {
-            case RECORDED:
-                performCancelRecording();
-                break;
-            case CANCELED:
-                Core.getInstance().getDocumentLifecycleBus()
-                        .handleDocument(this, DocumentState.REMOVE_RECORDS);
-                break;
-            case MARKED:
-            case DELETED:
-                throw new DocumentHandlingException(
-                        WRONG_DOCUMENT_STATE_EXCEPTION_MESSAGE);
-        }
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, DocumentState.SAVED);
-        state = DocumentState.SAVED;
-    }
-
     public void setCreateDate(Date createDate)
     {
         this.createDate = createDate;
@@ -171,5 +72,17 @@ public abstract class Document
     public void setPrefix(String prefix)
     {
         this.prefix = prefix;
+    }
+
+    protected void notifyDocumentLifecycleBus(DocumentState newState) throws DocumentHandlingException
+    {
+        Core.getInstance().getDocumentLifecycleBus()
+                .handleDocument(this, newState);
+        setState(newState);
+    }
+
+    protected void setState(DocumentState newState)
+    {
+        state = newState;
     }
 }

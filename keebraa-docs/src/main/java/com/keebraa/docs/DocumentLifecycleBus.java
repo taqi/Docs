@@ -18,8 +18,6 @@ public interface DocumentLifecycleBus
 	/**
 	 * Method should register new {@link DocumentLifecycleHandler}
 	 * 
-	 * @param <T>
-	 *            - Type of the {@link Document} to be handled
 	 * @param handler
 	 *            - new document lifecycle handler
 	 */
@@ -32,11 +30,10 @@ public interface DocumentLifecycleBus
 	 *            - {@link Document} to be handled
 	 * @param nextState
 	 *            - Next state for document
-	 * @return result of the state changing process.
 	 * @throws DocumentHandlingException
 	 *             - in case, when document has not been filled correctly, etc.
 	 */
-	public boolean handleDocument(Document document, DocumentState nextState)
+	public void handleDocument(Document document, DocumentState nextState)
 			throws DocumentHandlingException;
 
 }
