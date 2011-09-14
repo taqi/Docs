@@ -9,10 +9,10 @@ import com.keebraa.docs.model.Document;
  * @author taqi
  *
  */
-public class SutDocument extends Document
+public class SutDocumentTestStub extends Document
 {
 
-    public SutDocument() throws DocumentHandlingException
+    public SutDocumentTestStub() throws DocumentHandlingException
     {
         super();
     }
@@ -25,6 +25,6 @@ public class SutDocument extends Document
     
     public void changeState() throws DocumentHandlingException
     {
-        notifyDocumentLifecycleBus(new SomeState());
+        notifyDocumentLifecycleBus(new SomeStateTestStub());
     }
 }

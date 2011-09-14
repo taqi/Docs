@@ -5,8 +5,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.keebraa.docs.DocumentLifecycleBus;
 import com.keebraa.docs.exceptions.DocumentHandlingException;
@@ -30,17 +32,17 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         return singleton;
     }
 
-    private Map<Type, List<DocumentLifecycleHandler>> registeredHandlers;
+    private Map<Type, Set<DocumentLifecycleHandler>> registeredHandlers;
 
     public SystemDocumentLifecycleBus()
     {
-        registeredHandlers = new HashMap<Type, List<DocumentLifecycleHandler>>();
+        registeredHandlers = new HashMap<Type, Set<DocumentLifecycleHandler>>();
     }
 
     public void handleDocument(Document document, DocumentState nextState)
             throws DocumentHandlingException
     {
-        List<DocumentLifecycleHandler> handlers = getHandlers(document.getClass());
+        Set<DocumentLifecycleHandler> handlers = getHandlers(document.getClass());
         for (DocumentLifecycleHandler handler : handlers)
         {
             List<Method> methods = getHandlingMethods(handler, nextState);
@@ -86,7 +88,7 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
             throw new DocumentLifecycleHandlerException(
                     "Handler has been anotated on wrong Document realization.");
         }
-        List<DocumentLifecycleHandler> handlers = getHandlers(clazz);
+        Set<DocumentLifecycleHandler> handlers = getHandlers(clazz);
         handlers.add(handler);
     }
 
@@ -114,12 +116,12 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         return result;
     }
 
-    private List<DocumentLifecycleHandler> getHandlers(Type documentClass)
+    private Set<DocumentLifecycleHandler> getHandlers(Type documentClass)
     {
-        List<DocumentLifecycleHandler> handlers = registeredHandlers.get(documentClass);
+        Set<DocumentLifecycleHandler> handlers = registeredHandlers.get(documentClass);
         if (handlers == null)
         {
-            handlers = new ArrayList<DocumentLifecycleHandler>();
+            handlers = new HashSet<DocumentLifecycleHandler>();
             registeredHandlers.put(documentClass, handlers);
         }
         return handlers;
