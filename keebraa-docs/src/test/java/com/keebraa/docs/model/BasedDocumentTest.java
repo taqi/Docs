@@ -24,8 +24,7 @@ public class BasedDocumentTest
         Document doc = new SomeBasedDocumentStub(new SutDocumentTestStub());
         assertNotNull(doc.getState());
         assertEquals(NewState.CAPTION, doc.getState().getStateCaption());
-    }
-    
+    }  
 }
 
 
