@@ -74,10 +74,10 @@ public abstract class Document
         this.prefix = prefix;
     }
 
-    protected void notifyDocumentLifecycleBus(DocumentState newState) throws DocumentHandlingException
+    protected void notifyDocumentLifecycleBus(DocumentState newState)
+            throws DocumentHandlingException
     {
-        Core.getInstance().getDocumentLifecycleBus()
-                .handleDocument(this, newState);
+        Core.getInstance().getDocumentLifecycleBus().handleDocument(this, newState);
         setState(newState);
     }
 
