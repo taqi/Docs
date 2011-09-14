@@ -2,13 +2,12 @@ package com.keebraa.docs.impl.stub;
 
 import com.keebraa.docs.exceptions.DocumentHandlingException;
 import com.keebraa.docs.model.Document;
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 import com.keebraa.docs.model.dochandlers.DocumentStateHandler;
 import com.keebraa.docs.model.dochandlers.HandlingMethod;
 import com.keebraa.docs.model.impl.NewState;
 
 @DocumentStateHandler(handledClass = SomeHandledDocumentTestStub.class)
-public class SomeHandlerTestStub extends DocumentLifecycleHandler
+public class SomeHandlerTestStub
 {
     private String handledState;
     

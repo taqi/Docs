@@ -1,19 +1,17 @@
 package com.keebraa.docs.model.dochandlers.stub;
 
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 import com.keebraa.docs.model.dochandlers.DocumentStateHandler;
 import com.keebraa.docs.model.dochandlers.HandlingMethod;
 import com.keebraa.docs.model.impl.NewState;
 
 @DocumentStateHandler(handledClass=SomeDocumentTestStub.class)
-public class SomeHandlerTestStub extends DocumentLifecycleHandler
-{
-    private boolean hasBeenProcessed = false;
+public class SomeHandlerTestStub
+{   
     
     @HandlingMethod(state=NewState.CAPTION)
     public void handleCreatingDocument()
     {
-        hasBeenProcessed = true;
+
     }
 
     @Override

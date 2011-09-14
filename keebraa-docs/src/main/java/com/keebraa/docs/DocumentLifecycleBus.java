@@ -21,7 +21,7 @@ public interface DocumentLifecycleBus
 	 * @param handler
 	 *            - new document lifecycle handler
 	 */
-	public void registerDocumentLifecycleHandler(DocumentLifecycleHandler handler);
+	public void registerDocumentLifecycleHandler(Object handler);
 
 	/**
 	 * Method handles document changestate, calls handlers.

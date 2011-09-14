@@ -15,7 +15,6 @@ import com.keebraa.docs.exceptions.DocumentHandlingException;
 import com.keebraa.docs.exceptions.DocumentLifecycleHandlerException;
 import com.keebraa.docs.model.Document;
 import com.keebraa.docs.model.DocumentState;
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 import com.keebraa.docs.model.dochandlers.DocumentStateHandler;
 import com.keebraa.docs.model.dochandlers.HandlingMethod;
 
@@ -32,18 +31,18 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         return singleton;
     }
 
-    private Map<Type, Set<DocumentLifecycleHandler>> registeredHandlers;
+    private Map<Type, Set<Object>> registeredHandlers;
 
     public SystemDocumentLifecycleBus()
     {
-        registeredHandlers = new HashMap<Type, Set<DocumentLifecycleHandler>>();
+        registeredHandlers = new HashMap<Type, Set<Object>>();
     }
 
     public void handleDocument(Document document, DocumentState nextState)
             throws DocumentHandlingException
     {
-        Set<DocumentLifecycleHandler> handlers = getHandlers(document.getClass());
-        for (DocumentLifecycleHandler handler : handlers)
+        Set<Object> handlers = getHandlers(document.getClass());
+        for (Object handler : handlers)
         {
             List<Method> methods = getHandlingMethods(handler, nextState);
             for (Method method : methods)
@@ -53,7 +52,7 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         }
     }
 
-    private void handleByMethod(DocumentLifecycleHandler handler, Method method,
+    private void handleByMethod(Object handler, Method method,
                                 Document document) throws DocumentHandlingException
     {
         try
@@ -74,7 +73,7 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         }
     }
 
-    public void registerDocumentLifecycleHandler(DocumentLifecycleHandler handler)
+    public void registerDocumentLifecycleHandler(Object handler)
             throws DocumentLifecycleHandlerException
     {
         if (!handler.getClass().isAnnotationPresent(DocumentStateHandler.class))
@@ -88,11 +87,11 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
             throw new DocumentLifecycleHandlerException(
                     "Handler has been anotated on wrong Document realization.");
         }
-        Set<DocumentLifecycleHandler> handlers = getHandlers(clazz);
+        Set<Object> handlers = getHandlers(clazz);
         handlers.add(handler);
     }
 
-    private List<Method> getHandlingMethods(DocumentLifecycleHandler handler,
+    private List<Method> getHandlingMethods(Object handler,
                                             DocumentState nextState)
     {
         if (handler.getClass().isAnnotationPresent(HandlingMethod.class))
@@ -116,12 +115,12 @@ public class SystemDocumentLifecycleBus implements DocumentLifecycleBus
         return result;
     }
 
-    private Set<DocumentLifecycleHandler> getHandlers(Type documentClass)
+    private Set<Object> getHandlers(Type documentClass)
     {
-        Set<DocumentLifecycleHandler> handlers = registeredHandlers.get(documentClass);
+        Set<Object> handlers = registeredHandlers.get(documentClass);
         if (handlers == null)
         {
-            handlers = new HashSet<DocumentLifecycleHandler>();
+            handlers = new HashSet<Object>();
             registeredHandlers.put(documentClass, handlers);
         }
         return handlers;
