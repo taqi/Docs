@@ -1,12 +1,11 @@
 package com.keebraa.docs.model.dochandlers.stub;
 
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 /**
  * Test stub without annotation
  * @author taqi
  *
  */
-public class SomeHandlerWithoutAnnotationTestStub extends DocumentLifecycleHandler
+public class SomeHandlerWithoutAnnotationTestStub
 {
 
     @Override

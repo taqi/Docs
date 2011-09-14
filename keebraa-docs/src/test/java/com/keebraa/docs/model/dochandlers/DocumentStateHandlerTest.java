@@ -12,14 +12,14 @@ public class DocumentStateHandlerTest
     @Test(expected=DocumentLifecycleHandlerException.class)
     public void testWrongHandledClassRegistration() throws Exception
     {
-        DocumentLifecycleHandler handler = new SomeWrongHandlerTestStub();
+        SomeWrongHandlerTestStub handler = new SomeWrongHandlerTestStub();
         Core.getInstance().getDocumentLifecycleBus().registerDocumentLifecycleHandler(handler);
     }
     
     @Test(expected=DocumentLifecycleHandlerException.class)
     public void testHandlerWithoutAnnotationRegistration() throws Exception
     {
-        DocumentLifecycleHandler handler = new SomeHandlerWithoutAnnotationTestStub();
+        SomeHandlerWithoutAnnotationTestStub handler = new SomeHandlerWithoutAnnotationTestStub();
         Core.getInstance().getDocumentLifecycleBus().registerDocumentLifecycleHandler(handler);
     }
         

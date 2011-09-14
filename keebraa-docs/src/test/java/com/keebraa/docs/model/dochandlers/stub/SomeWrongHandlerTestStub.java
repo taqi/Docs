@@ -1,10 +1,9 @@
 package com.keebraa.docs.model.dochandlers.stub;
 
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 import com.keebraa.docs.model.dochandlers.DocumentStateHandler;
 
-@DocumentStateHandler(handledClass=Object.class)
-public class SomeWrongHandlerTestStub extends DocumentLifecycleHandler
+@DocumentStateHandler(handledClass = Object.class)
+public class SomeWrongHandlerTestStub
 {
 
     @Override

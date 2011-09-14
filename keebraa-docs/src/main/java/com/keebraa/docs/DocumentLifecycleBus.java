@@ -3,7 +3,6 @@ package com.keebraa.docs;
 import com.keebraa.docs.exceptions.DocumentHandlingException;
 import com.keebraa.docs.model.Document;
 import com.keebraa.docs.model.DocumentState;
-import com.keebraa.docs.model.dochandlers.DocumentLifecycleHandler;
 
 /**
  * This interface provides common mechanism for document handling. Each
